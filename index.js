@@ -309,10 +309,11 @@ async function run() {
         })
 
         // payment
+
         app.post("/create-payment-intent", async (req, res) => {
             const { price } = req.body;
-            console.log(price);            
-            const amount = parseInt(price)*100;
+            console.log(price);
+            const amount = parseInt(price) * 100;
             console.log('donation', amount);
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount,
@@ -323,14 +324,40 @@ async function run() {
                 clientSecret: paymentIntent.client_secret
             })
         })
+        app.get('/payment/:email', async (req, res) => {
+            //   const email = req.query.email;
+            //   const query = { email: email }
+            const result = await paymentCollection.find({ email: req.params.email }).toArray();
+            res.send(result);
+        })
 
-
-
-        app.post('/payment',async(req,res)=>{
-            const payment=req.body;
-            const paymentResult= await paymentCollection.insertedId(payment);
+        app.post('/payment', async (req, res) => {
+            const payment = req.body;
+            const paymentResult = await paymentCollection.insertOne(payment);
             res.send(paymentResult)
         })
+
+
+// ------------------------------------------------------
+        app.patch('/adoptions/:id', async(req,res)=>{
+            const id = req.params.id;
+            const query = {_id : new ObjectId(id)};
+            const assetsReqData = req.body;
+            // const options = {upsert:true};
+           
+            
+            const updateDoc = {
+                $set:{
+                    status:assetsReqData.status
+                }
+            }
+           
+            const result = await adoptionCollection.updateOne(query,updateDoc);
+            res.send(result);
+        })
+
+// ------------------------------------------------
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
